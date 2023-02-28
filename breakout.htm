@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Breakout | Index</title>
+		<style>
+			canvas {
+				border: solid 1px #CDCDCD;
+				margin: auto;
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="cc"></canvas>
+		<script>
+			window.onload = function() {
+				canvas = document.getElementById("cc");
+				context = canvas.getContext("2d");
+				canvas.width = 300;
+				canvas.height = 600;
+				key = [];
+				blocksArr = [];
+				for(let i = 0; i < 6; i ++) {
+					y = 0;
+					for(let j = 0; j < 9; j++) {
+						blocksArr.push(new Brick(i * 50, y));
+						y += 20;
+					}
+				}
+				requestAnimationFrame(draw);
+			}
+			function draw() {
+				requestAnimationFrame(draw);
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				player.draw();
+				ball.draw();
+				score.draw();
+				for(i of blocksArr) i.draw();
+			}
+			function Brick(x, y) {
+				this.x = x;
+				this.y = y;
+				this.width = 50;
+				this.height = 20;
+				this.colors = [ "red", "green", "blue", "yellow", "grey", "orange", "purple", "brown" ];
+				this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
+				this.draw = function() {
+					context.fillStyle = this.color;
+					context.fillRect(this.x, this.y, this.width, this.height);
+					//collision
+					if(brickCollide(ball, this)) {
+						ball.vy = -ball.vy;
+						ball.vy += .2;
+						this.y = -500;
+						score.value += 100;
+					}
+				}
+			}
+			let score = {
+				font: "20px Georgia",
+				txt: "Score: ",
+				value: 0,
+				x: 10,
+				y: 590,
+				color: "#232323",
+				draw: function() {
+					context.fillStyle = this.color;
+					context.font = this.font;
+					context.fillText(this.txt + this.value, this.x, this.y);
+				}
+			};
+			let ball = {
+				x: 150,
+				y: 540,
+				r: 7,
+				sangle: 0,
+				eangle: 2 * Math.PI,
+				color: "#737373",
+				vx: 3.3,
+				vy: 3.3,
+				isStop: true,
+				draw: function() {
+					context.beginPath();
+					context.fillStyle = this.color;
+					context.arc(this.x, this.y, this.r, this.sangle, this.eangle);
+					context.fill();
+					//movement
+					if(key[32]) this.isStop = false;
+					if(!this.isStop) {
+						this.x += this.vx;
+						this.y -= this.vy;
+					}
+					//bounds
+					if(this.x + this.r > canvas.width || this.x - this.r < 0) this.vx = -this.vx;
+					if(this.y - this.r < 0) this.vy = -this.vy;
+					//collision
+					if(playerCollide(player, this)) {
+						this.vy = -this.vy;
+						this.vy += .2;
+					}
+				}
+			}
+			let player = {
+				x: 120,
+				y: 550,
+				width: 65,
+				height: 15,
+				color: "#272727",
+				vx: 3.3,
+				draw: function() {
+					context.fillStyle = this.color;
+					context.fillRect(this.x, this.y, this.width, this.height);
+					//movement
+					if(key[37]) this.x -= this.vx;
+					if(key[39]) this.x += this.vx;
+					//bounds
+					if(this.x < 0) this.x = 0;
+					if(this.x + this.width > canvas.width) this.x = canvas.width - this.width;
+				}
+			};
+			function playerCollide(p1, b) {
+				return !(
+					p1.x > b.x + b.r ||
+					p1.y > b.y + b.r ||
+					p1.x + p1.width < b.x ||
+					p1.y + p1.height < b.y
+				);
+			}
+			function brickCollide(ba, br) {
+				return !(
+					br.x > ba.x + ba.r ||
+					br.y > ba.y + ba.r ||
+					br.x + br.width < ba.x ||
+					br.y + br.height < ba.y
+				);
+			}
+			window.addEventListener("keydown", function(e) { key[e.keyCode] = true; });
+			window.addEventListener("keyup", function(e) { key[e.keyCode] = false; });
+		</script>
+	</body>
+</html>
